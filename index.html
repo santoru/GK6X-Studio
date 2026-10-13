@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Keymap and lighting editor for GK6X keyboards, in the browser over WebHID.">
+  <meta name="theme-color" content="#0b0b0c">
+  <title>GK6X Studio</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>GK6X Studio</div>
+    <div class="status" id="status"><span class="dot"></span><span id="status-text">Not connected</span></div>
+    <select id="model" title="Preview layout"></select>
+    <button class="btn primary" id="connect">Connect keyboard</button>
+  </header>
+
+  <div class="banner" id="no-hid" hidden>
+    This browser doesn't support WebHID. Open this page in <b>Chrome</b> or <b>Edge</b> to connect your keyboard.
+  </div>
+
+  <main>
+    <div class="toolbar">
+      <div class="segmented" id="layers">
+        <button data-layer="0" class="base" title="Safe fallback layer, avoid editing">Base</button>
+        <button data-layer="1">Layer 1</button>
+        <button data-layer="2">Layer 2</button>
+        <button data-layer="3">Layer 3</button>
+      </div>
+      <div class="tools">
+        <div class="segmented" id="mode">
+          <button data-mode="keys">Keys</button>
+          <button data-mode="lighting">Lighting</button>
+        </div>
+        <div class="menu">
+          <button class="btn ghost" id="copy">Copy layer to…</button>
+          <div class="menu-list" id="copy-list" hidden></div>
+        </div>
+        <button class="btn ghost" id="clear">Clear layer</button>
+        <div class="menu">
+          <button class="btn ghost icon" id="more" title="More" aria-label="More">⋯</button>
+          <div class="menu-list" id="more-list" hidden>
+            <button data-action="export">Export profile</button>
+            <button data-action="import">Import profile</button>
+            <button data-action="preset">Load my default keymap</button>
+            <button data-action="log">Show packet log</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="stage">
+      <div class="board" id="board"></div>
+    </section>
+
+    <section class="picker" id="picker">
+      <div class="picker-head">
+        <div class="selection" id="selection">Select a key to remap it</div>
+        <div class="mods" id="mods" title="Hold these modifiers with the key">
+          <button data-mod="1">Ctrl</button><button data-mod="2">Shift</button><button data-mod="4">Alt</button><button data-mod="8">Win</button>
+        </div>
+        <input id="search" type="search" placeholder="Search keys…" autocomplete="off">
+      </div>
+      <nav class="tabs" id="tabs"></nav>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <section class="picker" id="light" hidden>
+      <div class="picker-head">
+        <div class="segmented" id="light-kind">
+          <button data-kind="keep">Keep current</button>
+          <button data-kind="static">Paint</button>
+          <button data-kind="effect">Effects</button>
+        </div>
+        <div class="selection" id="light-note"></div>
+      </div>
+      <div class="paint" id="paint-tools">
+        <input type="color" id="color" title="Paint colour">
+        <div class="swatches" id="swatches"></div>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="fill">Fill all</button>
+        <button class="btn ghost" id="off">All off</button>
+        <button class="btn ghost" id="mapped" title="Light only keys that do something on this layer">Light mapped keys</button>
+        <button class="btn ghost" id="by-function" title="Colour each key by what it does on this layer">Colour by function</button>
+      </div>
+      <div id="effect-tools">
+        <div class="paint" id="effect-opts">
+          <input type="color" id="effect-color" title="Effect colour">
+          <div class="swatches" id="effect-swatches"></div>
+          <span class="spacer"></span>
+          <label class="speed">Slow
+            <input type="range" id="speed" min="1" max="10" step="1">
+          Fast</label>
+        </div>
+        <div class="chips effects" id="effects"></div>
+      </div>
+    </section>
+
+    <pre class="log" id="log" hidden></pre>
+  </main>
+
+  <footer class="bar">
+    <span id="dirty">All changes written</span>
+    <span class="spacer"></span>
+    <button class="btn ghost" id="revert">Revert</button>
+    <button class="btn primary" id="write" disabled>Write to keyboard</button>
+  </footer>
+
+  <dialog class="dialog" id="base-warning">
+    <form method="dialog">
+      <h3>Write to the Base layer?</h3>
+      <p>Base is the keyboard's safe fallback layer. GK6XPlus never changes it, so it still holds the factory layout
+        you can return to if Layers 1–3 go wrong.</p>
+      <p>Editing it is best avoided. If you do, keep the letters and a way to switch layers.</p>
+      <div class="actions">
+        <button class="btn ghost" value="cancel" autofocus>Cancel</button>
+        <button class="btn danger" value="write">Write Base anyway</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+  <input type="file" id="file" accept="application/json" hidden>
+</body>
+</html>
